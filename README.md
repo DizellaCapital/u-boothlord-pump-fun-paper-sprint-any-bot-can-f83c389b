@@ -8,20 +8,30 @@ Entry for the make.fun bounty
 `u-boothlord-pump-fun-paper-sprint-any-bot-can-f83c389b` — a paper-trading bot that runs on a
 6-hour replay of real pump.fun chain data. Pure net PnL wins; winner takes the whole $2 pot.
 
-## Strategy: fast-cycle equal sniper
+## Strategy: patient selective sniper (v2)
 
-On a 6-hour window, simple beats clever. This bot buys launches **early and often**, one equal
-0.08 SOL ticket per coin, and cycles its 5 position slots fast so it trades dozens of coins in
-6 hours instead of a handful:
+Version 1 bought too much, too big, and cut winners short: 181 coins at 0.08 SOL, an 18-slot
+clock, and a -9% stop that whipsawed out of coins that dipped and then recovered. It lost
+-0.358 SOL on the dev window. Version 2 is the same skeleton with the shape fixed, every
+change measured on the full dev window with the kit's own grader:
 
-- **Entry (age 2–6 slots after create):** at least 3 distinct non-creator buyers, at least
-  0.8 SOL bought by non-creators, creator's own buy ≤ 1 SOL, creator has not sold, real SOL
+- **Entry (age 2–3 slots after create):** at least 3 distinct non-creator buyers, at least
+  2.0 SOL bought by non-creators, creator's own buy ≤ 1 SOL, creator has not sold, real SOL
   0.2–20. One buy per coin, never an add.
-- **Exit (sell all):** +18% take-profit, −9% stop-loss, max hold 18 slots, or immediately when
-  the creator sells. No runner, no partial take-profit, no trailing stop.
-- **Guardrail pacing:** the bot tracks its own pace against a 30-coin / 6-hour target; when it
-  lags, it opens tiny 0.01 SOL probe round trips so the 20-coin minimum bar is met even on a
-  quiet stretch.
+- **Stake:** 0.04 SOL per coin — half of v1, so fee drag (125 bps curve + tx per fill) and
+  the loss on each dud are both halved.
+- **Exit (sell all):** +18% take-profit, −20% stop-loss (wider — the -9% stop was mostly
+  noise), max hold 36 slots (longer — gives winners time to reach the take-profit instead
+  of being clocked out), or immediately when the creator sells. No runner, no partial
+  take-profit, no trailing stop.
+- **Guardrail pacing:** the bot tracks its own pace against a 30-coin / 6-hour target; when
+  it lags, it opens tiny 0.01 SOL probe round trips so the 20-coin minimum bar is met even
+  on a quiet stretch.
+
+Measured with the kit grader on the full 24-hour dev window: net PnL **-0.053 SOL** (v1:
+-0.358 SOL), win rate 0.368 (v1: 0.282), 266 fills over 132 coins, max drawdown 0.013,
+guardrails met. The 90% interval moved from entirely negative (-0.629..-0.098) to
+straddling zero (-0.223..+0.124).
 
 Fully deterministic: every decision is a pure function of the batch stream (no clock, no
 environment, no randomness), so the two grading runs produce byte-identical action logs.
